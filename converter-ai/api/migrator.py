@@ -4,6 +4,8 @@ from pathlib import Path
 
 from anthropic import Anthropic
 
+from scaffold import write_scaffold
+
 MODEL = "claude-sonnet-5"
 
 SYSTEM_PROMPT = (
@@ -45,6 +47,9 @@ def find_vue_files(repo_dir: Path) -> list[Path]:
 def migrate_repo(repo_dir: Path, output_dir: Path) -> list[dict]:
     client = Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
     results = []
+    migrated_files = []
+
+    components_dir = output_dir / "src" / "migrated"
 
     for vue_path in find_vue_files(repo_dir):
         relative_path = vue_path.relative_to(repo_dir)
@@ -53,14 +58,17 @@ def migrate_repo(repo_dir: Path, output_dir: Path) -> list[dict]:
         try:
             react_source = migrate_vue_file(client, str(relative_path), vue_source)
             status = "migrated"
+            migrated_files.append(str(relative_path.with_suffix(".tsx")))
         except Exception as exc:
             react_source = f"// Migration failed: {exc}\n"
             status = "failed"
 
-        out_path = output_dir / relative_path.with_suffix(".tsx")
+        out_path = components_dir / relative_path.with_suffix(".tsx")
         out_path.parent.mkdir(parents=True, exist_ok=True)
         out_path.write_text(react_source, encoding="utf-8")
 
         results.append({"file": str(relative_path), "status": status})
+
+    write_scaffold(output_dir, migrated_files)
 
     return results

@@ -64,3 +64,34 @@
   background: #a5a5a5;
   cursor: not-allowed;
 }
+
+.error {
+  margin-top: 16px;
+  color: #dc2626;
+}
+
+.result {
+  margin-top: 20px;
+  text-align: left;
+}
+
+.file-list {
+  max-height: 200px;
+  overflow-y: auto;
+  padding-left: 20px;
+  margin: 8px 0;
+  font-size: 14px;
+  color: #444;
+}
+
+.download-link {
+  display: inline-block;
+  margin-top: 8px;
+  color: #4f46e5;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.download-link:hover {
+  text-decoration: underline;
+}
