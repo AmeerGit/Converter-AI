@@ -1,3 +1,4 @@
+import os
 import shutil
 import tempfile
 import uuid
@@ -19,7 +20,11 @@ app = FastAPI(title="Vue to React Migrator")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=[
+        origin.strip()
+        for origin in os.getenv("FRONTEND_URL", "http://localhost:5173").split(",")
+        if origin.strip()
+    ],
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -30,6 +35,11 @@ WORK_DIR.mkdir(exist_ok=True)
 
 class MigrateRequest(BaseModel):
     repo_url: str
+
+
+@app.get("/healthz")
+def health_check():
+    return {"status": "ok"}
 
 
 def _validate_github_url(repo_url: str) -> str:

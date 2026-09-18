@@ -1,0 +1,12 @@
+{
+    "chat.tools.terminal.autoApprove": {
+        "/^npm run build$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^cd api && \\.venv/bin/python -m compileall -q \\.$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
+    }
+}
