@@ -1,28 +1,36 @@
+import json
 from pathlib import Path
 
-PACKAGE_JSON = """{
-  "name": "migrated-react-app",
-  "private": true,
-  "version": "0.0.0",
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
-    "preview": "vite preview"
-  },
-  "dependencies": {
+BASE_DEPENDENCIES = {
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
-  },
-  "devDependencies": {
+    "react-dom": "^18.3.1",
+}
+
+DEV_DEPENDENCIES = {
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.4",
     "typescript": "^5.6.3",
-    "vite": "^5.4.11"
-  }
+    "vite": "^5.4.11",
 }
-"""
+
+
+def build_package_json(extra_dependencies: dict[str, str]) -> str:
+    dependencies = {**BASE_DEPENDENCIES, **extra_dependencies}
+    package = {
+        "name": "migrated-react-app",
+        "private": True,
+        "version": "0.0.0",
+        "type": "module",
+        "scripts": {
+            "dev": "vite",
+            "build": "tsc -b && vite build",
+            "preview": "vite preview",
+        },
+        "dependencies": dict(sorted(dependencies.items())),
+        "devDependencies": dict(sorted(DEV_DEPENDENCIES.items())),
+    }
+    return json.dumps(package, indent=2) + "\n"
 
 INDEX_HTML = """<!doctype html>
 <html lang="en">
@@ -92,7 +100,7 @@ def _import_path(relative_path: str) -> str:
 def build_app_tsx(migrated_files: list[str]) -> str:
     imports = []
     elements = []
-    seen_names: set[str] = set()
+    seen_names: set[str] = {"App"}
 
     for relative_path in migrated_files:
         name = _component_name(relative_path)
@@ -120,11 +128,11 @@ export default App
 """
 
 
-def write_scaffold(project_dir: Path, migrated_files: list[str]) -> None:
+def write_scaffold(project_dir: Path, migrated_files: list[str], extra_dependencies: dict[str, str] | None = None) -> None:
     src_dir = project_dir / "src"
     src_dir.mkdir(parents=True, exist_ok=True)
 
-    (project_dir / "package.json").write_text(PACKAGE_JSON, encoding="utf-8")
+    (project_dir / "package.json").write_text(build_package_json(extra_dependencies or {}), encoding="utf-8")
     (project_dir / "index.html").write_text(INDEX_HTML, encoding="utf-8")
     (project_dir / "vite.config.ts").write_text(VITE_CONFIG, encoding="utf-8")
     (project_dir / "tsconfig.json").write_text(TSCONFIG_JSON, encoding="utf-8")

@@ -11,7 +11,7 @@ from fastapi.responses import FileResponse
 from git import GitCommandError, Repo
 from pydantic import BaseModel
 
-from migrator import migrate_repo
+from agent import run_migration_agent
 
 load_dotenv()
 
@@ -54,11 +54,12 @@ def migrate(request: MigrateRequest):
         shutil.rmtree(job_dir, ignore_errors=True)
         raise HTTPException(status_code=400, detail=f"Failed to clone repo: {exc}") from exc
 
-    results = migrate_repo(clone_dir, output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    results = run_migration_agent(clone_dir, output_dir)
 
     if not results:
         shutil.rmtree(job_dir, ignore_errors=True)
-        raise HTTPException(status_code=404, detail="No .vue files found in repository")
+        raise HTTPException(status_code=500, detail="Migration agent did not produce any output files")
 
     archive_path = shutil.make_archive(str(job_dir / "migrated"), "zip", output_dir)
 
